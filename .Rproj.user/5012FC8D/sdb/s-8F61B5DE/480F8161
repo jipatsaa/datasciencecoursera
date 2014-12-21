@@ -1,0 +1,16 @@
+{
+    "contents" : "downloadFromURLAndUnzip <- function  (fileUrl=\"http://dir.csv\", workdirPath=\".\", fileName=\"dataFile\")\n# 3 parameters:\n  # 1. url to download\n  # 2. the target directory to dump the information\n  # 3. the name of the file\n  \n{\n  ## Step 0: Checking for and creating directories\n  if(!file.exists(workdirPath))\n  {\n    dir.create(workdirPath)\n  }\n  \n  ## Step 1: download the data file\n  fileAndPath=paste(workdirPath,fileName,sep=\"/\")\n  if(!file.exists(fileAndPath))\n  {\n    download.file(fileUrl, destfile=fileAndPath,method=\"curl\")\n    unzip(zipfile=fileAndPath, exdir=dataDir) \n    dateDownloaded <- date()\n    print(paste(\"INFO: the data file downloaded on: \", dateDownloaded))\n  }\n}",
+    "created" : 1419196371205.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1079809656",
+    "id" : "480F8161",
+    "lastKnownWriteTime" : 1419198125,
+    "path" : "~/Dropbox/3_Getting_and_Cleaning_Data/project/aitzi_v0/downloadFromURLAndUnzip.R",
+    "project_path" : "downloadFromURLAndUnzip.R",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

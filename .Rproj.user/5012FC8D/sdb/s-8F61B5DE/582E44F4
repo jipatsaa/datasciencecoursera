@@ -1,0 +1,17 @@
+{
+    "contents" : "readTable <-function(dir,fileName){\n  fileAndPath=paste(dir,fileName,sep=\"/\")\n  result<-read.table(fileAndPath)\n}",
+    "created" : 1419197161156.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1926367101",
+    "id" : "582E44F4",
+    "lastKnownWriteTime" : 1419197451,
+    "path" : "~/Dropbox/3_Getting_and_Cleaning_Data/project/aitzi_v0/readTable.R",
+    "project_path" : "readTable.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}
