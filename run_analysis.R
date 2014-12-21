@@ -42,50 +42,61 @@ if(!file.exists(filePathZIP))
   downloadFromURLAndUnzip(fileUrl,workdirPath=dataDir,fileName=fileNameZIP)
 }
 
-#OBTAIN GENERAL INFORMATION ABOUT THE ACTIVITY AND FEATURE CODES
-#############################
+###############################################
+# 2. OBTAIN GENERAL INFORMATION ABOUT THE ACTIVITY AND FEATURE CODES
+###############################################
 # OBTAIN ACTIVITY CODES AND DESCRIPTORS 
 # (6 activities in total)
 # (activity_labels.txt) file containing the activity codes and descriptors i.e. 1 WALKING 
-#############################
+
 activity<-readTable(dirDataSet,"activity_labels.txt")
 actList<-as.character(activity$V2) #getting the Strings corresponding to the codes
 
-#############################
+
 # OBTAIN MOVEMENT FEATURES CODES AND DESCRIPTORS 
 # (561 features in total)
 # (features.txt) file containing the descriptors of the movement features i.e. 1 tBodyAcc-mean()-X
-#############################
+
 features<-readTable(dirDataSet,"features.txt")
-features<-features$V2 #bakarrik behar dugu bigarren zutabea
+features<-features$V2 #we just want the 2nd column
+
 
 #OBTAIN TEST+TRAIN 
-############################
 # (X_test.txt eta X_train.txt)
 # TEST:  dim=number of observations: 2947, number of processed movement features: 561
 # TRAIN: dim=number of observations: 7351, number of processed movement features: 561
 ############################
-trainfitx<-paste(dirDataSet,"train/X_train.txt",sep="/")
-trainProcessedFeatures<-read.table(trainfitx)
-testfitx<-paste(dirDataSet,"test/X_test.txt",sep="/")
-testProcessedFeatures<-read.table(testfitx)
-corpProcessedFeatures<-rbind(trainProcessedFeatures,testProcessedFeatures) #bind Test+Train obtaining the whole corpus (dataSet)
+trainProcessedFeatures<-readTable(dirDataSet,"train/X_train.txt")
+testProcessedFeatures<-readTable(dirDataSet,"test/X_test.txt")
+
+############################
+# 3. MERGE TRAIN+TEST
+############################
+corpProcessedFeatures<-rbind(trainProcessedFeatures,testProcessedFeatures) #Merge Test+Train obtaining the whole corpus (dataSet)
+
+
+############################
+# 4. ADD THE NAMES OF THE FEATURES
+############################
 names(corpProcessedFeatures)<-as.character(features) #adding the names of the features to each column values
 
-# We want to process only the (M/m)ean and (S/s)tandard deviation features
-# Steps to filter those
-# get the indexes of the columns containing (M/m)ean or (S/s)td
+# From all the features we want to process ONLY the ones refering to (M/m)ean and (S/s)tandard deviation features
+
+############################
+# 5. FILTER MEANS AND STD DEVIATIONS
+############################
+# get the indexes of the columns containing the words (M/m)ean or (S/s)td
 meanInd<-grep("mean",names(corpProcessedFeatures),ignore.case=TRUE)
 stdInd<-grep("std",names(corpProcessedFeatures),ignore.case=TRUE)
 meanStdInd<-c(meanInd,stdInd)
 meanStdInd<-sort(meanStdInd)
 
-# filter to obtain only the (M/m)ean and (S/s)td columns 
+# filter those indx to obtain only the (M/m)ean and (S/s)td columns 
 corpMeanStdProcFeat<-subset(corpProcessedFeatures,select=meanStdInd) #equivalent corpProcessedFeatures[meanStdInd]
 
 
 #################################
-#OBTAIN INF. ABOUT SUBJECTS
+# 6. OBTAIN INF. ABOUT THE SUBJECTS
 #################################
 # (30 different subjects)
 # (subject_train.txt) file contains inf. about 21 subjects: 1  3  5  6  7  8 11 14 15 16 17 19 21 22 23 25 26 27 28 29 30
@@ -97,7 +108,8 @@ testfitx<-paste(dirDataSet,"test/subject_test.txt",sep="/")
 testSubjects<-read.table(testfitx)
 corpSubjs<-rbind(trainSubjects,testSubjects) #bind subjects inf. from test+train
 
-#OBTAIN CLASS INFORMATION (the class to guess)
+#################################
+# 7. OBTAIN CLASS INFORMATION (the class to guess)
 #################################
 # (Y_test.txt) file contains inf. about the class to guess in the clustering task
 #################################
@@ -109,14 +121,21 @@ trainActivityDescriptor<-apply(trainActivityCode,1,function(x) as.character(actL
 testActivityDescriptor<-apply(testActivityCode,1,function(x) as.character(actList[x]))
 corpActivityDescriptor<-c(trainActivityDescriptor,testActivityDescriptor)
 
-
-#bind the information about the subjects with their corresponding processed movement features and the activity associated to the subject in that moment
+###############################
+# 8. MERGE SUBJ+FEATURES+ACTIVITY INF.
+###############################
+# Merge the information about the subjects with their corresponding processed movement features and the activity associated to the subject in that moment
 corpProcFeatActCode<-cbind(corpSubjs,corpMeanStdProcFeat,corpActivityDescriptor)
 names(corpProcFeatActCode)<-c("subject",as.character(names(corpMeanStdProcFeat)),"activity")
 
 #remove all auxiliary variables
 rm(features,trainSubjects,testSubjects,trainProcessedFeatures,testProcessedFeatures,trainActivityCode,testActivityCode,corpProcessedFeatures,corpActivityDescriptor,corpSubjs,meanInd,stdInd,meanStdInd)
 
+################################
+# 9. PROCESS THE DATA TO OBTAIN THE MEAN OF EACH FEAT. BY SUBJECT-ACTIVITY PAIR: 
+#    1. Organize by Subject and Activity. 
+#    2. Calculate the mean of each feature for each subject-activity pair
+################################
 DT<-data.table(corpProcFeatActCode)#convert the frame into a table to split it by subject and activity and apply the mean to each column
 
 res<-DT[, lapply(.SD,mean), by=list(subject,activity)]#.SD stands for subset data and it is used to apply the mean to every column of the table
@@ -125,14 +144,3 @@ res[order(subject,activity)]#order de result by subject and actibity
 
 write.table(res, file ="MeanAndStdValuesForEachSubject-Activity",row.names=FALSE,sep=" ") #write the result as tidy data
 
-##########################################
-# IN ANOTHER WAY
-# another way of calculating the mean of each varible, of each subject and activity type but over a frame. PROBLEM:
-# it gives back a "by" class object, that is to say, a list. And to get a "tidy" format it is not obvious. 
-############################################
-#
-# result<-by(corpProcFeatActCode,list(Subject=corpProcFeatActCode$subject,activity=corpProcFeatActCode$activity), function(x){
-#   y <- subset(x, select= -subject)#remove subject
-#   z <- subset(y, select= -activity)#remove activity
-#   apply(z, 2, mean)
-# })
