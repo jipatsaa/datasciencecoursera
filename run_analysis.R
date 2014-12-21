@@ -9,7 +9,7 @@
 #       The data will be downloaded from "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
 #       and unzip-ed and save in a NEW directory called ./data
 # POST: The result has been saved into the file called "MeanAndStdValuesForEachSubject-Activity")
-#       To recover it load("MeanAndStdValuesForEachSubject-Activity")
+#     
 ################################################################
 library(data.table)
 source("downloadFromURLAndUnzip.R") #function to create ./data dir and download and unzip the data
@@ -17,7 +17,7 @@ source("readTable.R") #function to read a file in the ./data/UCI HAR Dataset and
 actualPath<-getwd()
 
 #############################
-# 1 Step: Download the data
+# 1 Step: DOWNLOAD THE DATA
 #############################
 # Downlod the data from the https://d396qusza40orc.cloudfront.net website 
 # the file getdata_projectfiles_UCI HAR Dataset.zip will be download and unziped
@@ -33,7 +33,7 @@ dirDataSet<-paste(dataDir,"UCI\ HAR\ Dataset",sep="/")#once it will be downloade
 
 fileNameZIP <- "HARdata.zip"
 filePathZIP <- paste(dataDir,fileNameZIP,sep="/")
-downloadFromURLAndUnzip(fileUrl,workdirPath=dataDir,fileName=fileNameZIP)
+#downloadFromURLAndUnzip(fileUrl,workdirPath=dataDir,fileName=fileNameZIP)
 
 # if there is any problem downloading from https://d396qusza40orc.cloudfront.net webpage try the original
 if(!file.exists(filePathZIP))
@@ -43,7 +43,7 @@ if(!file.exists(filePathZIP))
 }
 
 ###############################################
-# 2. OBTAIN GENERAL INFORMATION ABOUT THE ACTIVITY AND FEATURE CODES
+# 2 Step: OBTAIN GENERAL INFORMATION ABOUT THE ACTIVITY AND FEATURE CODES
 ###############################################
 # OBTAIN ACTIVITY CODES AND DESCRIPTORS 
 # (6 activities in total)
@@ -70,20 +70,20 @@ trainProcessedFeatures<-readTable(dirDataSet,"train/X_train.txt")
 testProcessedFeatures<-readTable(dirDataSet,"test/X_test.txt")
 
 ############################
-# 3. MERGE TRAIN+TEST
+# 3 Step: MERGE TRAIN+TEST
 ############################
 corpProcessedFeatures<-rbind(trainProcessedFeatures,testProcessedFeatures) #Merge Test+Train obtaining the whole corpus (dataSet)
 
 
 ############################
-# 4. ADD THE NAMES OF THE FEATURES
+# 4 Step: ADD THE NAMES OF THE FEATURES
 ############################
 names(corpProcessedFeatures)<-as.character(features) #adding the names of the features to each column values
 
 # From all the features we want to process ONLY the ones refering to (M/m)ean and (S/s)tandard deviation features
 
 ############################
-# 5. FILTER MEANS AND STD DEVIATIONS
+# 5 Step: FILTER MEANS AND STD DEVIATIONS
 ############################
 # get the indexes of the columns containing the words (M/m)ean or (S/s)td
 meanInd<-grep("mean",names(corpProcessedFeatures),ignore.case=TRUE)
@@ -96,7 +96,7 @@ corpMeanStdProcFeat<-subset(corpProcessedFeatures,select=meanStdInd) #equivalent
 
 
 #################################
-# 6. OBTAIN INF. ABOUT THE SUBJECTS
+# 6 Step: OBTAIN INF. ABOUT THE SUBJECTS
 #################################
 # (30 different subjects)
 # (subject_train.txt) file contains inf. about 21 subjects: 1  3  5  6  7  8 11 14 15 16 17 19 21 22 23 25 26 27 28 29 30
@@ -109,7 +109,7 @@ testSubjects<-read.table(testfitx)
 corpSubjs<-rbind(trainSubjects,testSubjects) #bind subjects inf. from test+train
 
 #################################
-# 7. OBTAIN CLASS INFORMATION (the class to guess)
+# 7 Step: OBTAIN CLASS INFORMATION (the class to guess)
 #################################
 # (Y_test.txt) file contains inf. about the class to guess in the clustering task
 #################################
@@ -122,7 +122,7 @@ testActivityDescriptor<-apply(testActivityCode,1,function(x) as.character(actLis
 corpActivityDescriptor<-c(trainActivityDescriptor,testActivityDescriptor)
 
 ###############################
-# 8. MERGE SUBJ+FEATURES+ACTIVITY INF.
+# 8 Step: MERGE SUBJ+FEATURES+ACTIVITY INF.
 ###############################
 # Merge the information about the subjects with their corresponding processed movement features and the activity associated to the subject in that moment
 corpProcFeatActCode<-cbind(corpSubjs,corpMeanStdProcFeat,corpActivityDescriptor)
@@ -132,15 +132,25 @@ names(corpProcFeatActCode)<-c("subject",as.character(names(corpMeanStdProcFeat))
 rm(features,trainSubjects,testSubjects,trainProcessedFeatures,testProcessedFeatures,trainActivityCode,testActivityCode,corpProcessedFeatures,corpActivityDescriptor,corpSubjs,meanInd,stdInd,meanStdInd)
 
 ################################
-# 9. PROCESS THE DATA TO OBTAIN THE MEAN OF EACH FEAT. BY SUBJECT-ACTIVITY PAIR: 
+# 9 Step: PROCESS THE DATA TO OBTAIN THE MEAN OF EACH FEAT. BY SUBJECT-ACTIVITY PAIR: 
 #    1. Organize by Subject and Activity. 
 #    2. Calculate the mean of each feature for each subject-activity pair
+#    3. name the calculated features
+#    4. order the results by subject and activity
 ################################
 DT<-data.table(corpProcFeatActCode)#convert the frame into a table to split it by subject and activity and apply the mean to each column
 
 res<-DT[, lapply(.SD,mean), by=list(subject,activity)]#.SD stands for subset data and it is used to apply the mean to every column of the table
 
-res[order(subject,activity)]#order de result by subject and actibity
+resNames<-names(res)#obtain the original names
+aux<-lapply(resNames[3:length(resNames)],function(x){paste("MEAN-OVER-",x,sep="")})#CREATE NEW FEATURE NAMES (MEAN-OVER-feature)
+resNames<-c("subject","activity",aux)            
+setnames(res,names(res),as.character(resNames))#substitute all features names by new ones
 
-write.table(res, file ="MeanAndStdValuesForEachSubject-Activity",row.names=FALSE,sep=" ") #write the result as tidy data
+res[order(subject,activity)]#order de result by subject and activity
+
+################################
+# 10 Step: WRITE THE DATA IN A TXT FILE
+###############################
+write.table(res, file ="MeanAndStdValuesForEachSubject-Activity.txt",row.names=FALSE,sep=" ") #write the result as tidy data
 
