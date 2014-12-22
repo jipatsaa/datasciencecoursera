@@ -1,0 +1,64 @@
+---
+title: "Codebook"
+author: "Jipatsaa"
+date: "20 de diciembre de 2014"
+output: html_document
+---
+
+###THE ORIGINAL DATA
+The data obtained from https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip contains information about the experiments carried out with a group of 30 volunteers within an age bracket of 19-48 years. Each person performed six activities (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING) wearing a smartphone (Samsung Galaxy S II) on the waist. Using its embedded accelerometer and gyroscope, we captured 3-axial linear acceleration and 3-axial angular velocity at a constant rate of 50Hz. The experiments have been video-recorded to label the data manually. The obtained dataset has been randomly partitioned into two sets, where 70% of the volunteers was selected for generating the training data and 30% the test data.
+
+The sensor signals (accelerometer and gyroscope) were pre-processed by applying noise filters and then sampled in fixed-width sliding windows of 2.56 sec and 50% overlap (128 readings/window). The sensor acceleration signal, which has gravitational and body motion components, was separated using a Butterworth low-pass filter into body acceleration and gravity. The gravitational force is assumed to have only low frequency components, therefore a filter with 0.3 Hz cutoff frequency was used. From each window, a vector of features was obtained by calculating variables from the time and frequency domain. 
+
+The data is spreaded out in several files and folders (test and train folders), in such a way that for each observation we know which-subject, the-signals-captured (561 signals), the-activity-performed, but all these informations have been stored separatelly, so they have to be merged before attempting any analysis.
+
+#### THE GOAL OF THE ORIGINAL DATA
+This data was created to perform machine learning experiments on it. In this case, given a subject and preprocessed signals associated to his movements, guess the activity (WALKING, LAYING...) of the subject.
+
+### THE PROCESSED DATA
+
+ The present data shows the mean values of the Mean and Standard deviation features (86 from the original 561) from original dataset for each subject-activity pair. The rest of the information has been discarded. 
+ 
+#### FORMAT OF THE DATA
+Each row represents a subject-activity pair with the mean values of 86 different mean and standard deviation original values.
+NOTE: The first row corresponds to the names of the mean-features
+
+Each mean value appears in a different column
+NOTE: The first column corresponds to the subject id. (1 to 30)
+      The second column corrresponds to the activity descriptor (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING)
+
+
+### GENERAL INFORMATION ABOUT THE ACTIVITY AND FEATURE CODES AND DESCRIPTORS
+1. (activity_labels.txt) file containing the activity codes and descriptors 
+ 6 activities in total
+- 1 WALKING
+- 2 WALKING_UPSTAIRS
+- 3 WALKING_DOWNSTAIRS
+- 4 SITTING
+- 5 STANDING
+- 6 LAYING
+
+2. (features.txt) file containing the descriptors of the movement features i.e. 1 tBodyAcc-mean()-X
+   561 features in total
+   
+### INFORMATION ABOUT THE ACTIVITY ASSOCIATED TO EACH OBSERVATION OF A CERTAIN SUBJECT
+Y_test.txt file contains inf. about the class to guess in the clustering task
+
+### INFORMATION ABOUT THE IDENTIFIERS OF THE SUBJECTS
+subject_train.txt file in the train folder contains the identifiers of the 21 subjects appearing in the training set: 1  3  5  6  7  8 11 14 15 16 17 19 21 22 23 25 26 27 28 29 30
+subject_test.txt file contains the identifiers of the 9 subjects appearing in the test set: 2  4  9 10 12 13 18 20 24
+
+### INFORMATION ABOUT THE MOVEMENTS OF THE SUBJECTS (divided in test and training sets/folders)
+X_test.txt and X_train.txt contain the information about the processed sensor signals
+  
+  1. TEST:  dim=number of observations (Subject-activity pairs): 2947, number of processed movement features for each Subject-activity pair: 561
+  
+  2. TRAIN: dim=number of observations (Subject-activity pairs): 7351, number of processed movement features for each Subject-activity pair: 561
+
+
+
+
+
+
+
+
